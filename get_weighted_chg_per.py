@@ -5,7 +5,6 @@ import time
 import csv
 from pymongo import MongoClient
 
-
 csv_path = "data/"
 modules_path = glob.glob("{}/*".format(csv_path))
 
@@ -21,6 +20,7 @@ def timeStamp(time_num):
     other_style_time = time.strftime("%Y-%m-%d", time_array)
     return other_style_time
 
+
 def linkToMongo():
     uri = "mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
     client = MongoClient(uri)
@@ -34,33 +34,67 @@ def linkToMongo():
     if "source" in collist:  # 判断 sites 集合是否存在
         print("集合已存在！")
 
+
+''' 
+    写入单组数据
+    传入参数：字典
+'''
+
+
 def writeToMongodbByOne(onedic):
-    uri="mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
-    client=MongoClient(uri)
+    uri = "mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
+    client = MongoClient(uri)
 
-    db=client["Homework"]
+    db = client["Homework"]
 
-    collection=db["source"]
+    collection = db["source"]
     collection.insert_one(onedic)
 
+
+''' 
+    写入多组数据
+    传入参数：数组（包含多个字典）
+'''
+
 def writeToMongodbByMany(array):
-    uri="mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
-    client=MongoClient(uri)
+    uri = "mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
+    client = MongoClient(uri)
     dblist = client.list_database_names()
     # dblist = myclient.database_names()
     if "Homework" in dblist:
         print("数据库已存在！")
-    db=client["Homework"]
+    db = client["Homework"]
 
     collist = db.list_collection_names()
     if "source" in collist:  # 判断 sites 集合是否存在
         print("集合已存在！")
-    collection=db["source"]
+    collection = db["source"]
     collection.insert_many(array)
     print("done!")
 
+''' 
+    读mongo
+    输入：字典。格式：{'module': '航空运输','time': '2019-08-09'}
+    返回：多个字典
+    
+'''
+
+def readFromMongo(dic):
+    uri = "mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
+    client = MongoClient(uri)
+    db = client["Homework"]
+    collection = db["test3"]
+
+    doc = collection.find(dic)
+    for x in doc:
+        print(x)
+    return doc
+
+
 if __name__ == '__main__':
     linkToMongo()
+    readFromMongo({'module': '半导体'})
+
     dicArr=[]
     with open("new_data.csv", "w") as csvfile:
         writer = csv.writer(csvfile, lineterminator='\n')
@@ -109,7 +143,6 @@ if __name__ == '__main__':
                     output.append(weighted_sum / circul_sum)
                     mydict["percent"] = str(weighted_sum / circul_sum)
                 new_out.append(i)
-                mydict["total"] = str(i)
 
                 print(mydict)
                 dicArr.append(mydict)
@@ -117,7 +150,7 @@ if __name__ == '__main__':
                 # print(new_out)
                 writer.writerow(new_out)
             out_dic[output[0]] = output[1:]
-           # print("outdic",out_dic)
+            #print("outdic",out_dic)
 
 
     writeToMongodbByMany(dicArr)
@@ -127,6 +160,3 @@ if __name__ == '__main__':
     json_out = json.dumps(out_dic, ensure_ascii=False, indent=2)
     with open('weighted_chg_percent.json', 'w') as f:
         f.write(json_out)
-
-
-
