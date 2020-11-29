@@ -6,7 +6,6 @@ import time
 import csv
 from pymongo import MongoClient
 
-
 csv_path = "data/"
 modules_path = glob.glob("{}/*".format(csv_path))
 
@@ -15,9 +14,10 @@ time_stamp = []  # 储存时间戳
 weighted_mixed = []  # 二维数组，【股票【加权涨幅】】
 out_dic = {}
 uri = "mongodb+srv://Frank:123456789shi@cluster0.2hsme.gcp.mongodb.net/<Homework>?retryWrites=true&w=majority"
-dbname='Homework'
-writeCol='source'
-readCol='test3'
+dbname = 'Homework'
+writeCol = 'source'
+readCol = 'test3'
+
 
 def timeStamp(time_num):
     time_ = float(time_num / 1000)
@@ -59,6 +59,7 @@ def writeToMongodbByOne(onedic):
     传入参数：数组（包含多个字典）
 '''
 
+
 def writeToMongodbByMany(array):
     client = MongoClient(uri)
     dblist = client.list_database_names()
@@ -74,12 +75,14 @@ def writeToMongodbByMany(array):
     collection.insert_many(array)
     print("done!")
 
+
 ''' 
     读mongo
     输入：字典。格式：{'module': '航空运输','time': '2019-08-09'}
     返回：多个字典
     
 '''
+
 
 def readFromMongo(dic):
     client = MongoClient(uri)
@@ -92,47 +95,51 @@ def readFromMongo(dic):
     doc = collection.find(dic)
     print("#########————————————————————————————————")
 
-    docarray=[]
-    finalarray=[]
-    flags={}
+    docarray = []
+    finalarray = []
+    flags = {}
     for x in doc:
-        flags[x['module']+x['data']]=True
+        flags[x['module'] + x['data']] = True
         docarray.append(x)
     print("@@@@@@@@@@@@@@@@")
     for item in docarray:
-        if flags[item['module']+item['data']]:
-            flags[item['module'] + item['data']]=False
-            finalarray.append(docClean(docarray,str(item['module']),str(item['data'])))
+        if flags[item['module'] + item['data']]:
+            flags[item['module'] + item['data']] = False
+            finalarray.append(docClean(docarray, str(item['module']), str(item['data'])))
 
     print("————————————————————————————————————————————————————————————————")
     print(len(finalarray))
     return finalarray
 
-def docClean(doc,module,date):
-    max=-1
+
+def docClean(doc, module, date):
+    max = -1
     for item in doc:
-        if (str(item['data'])==date and item['module']== module):
-            temp=int(str(item['_id'])[0:8], 16)
-            if(temp>max):
-                max=temp
+        if (str(item['data']) == date and item['module'] == module):
+            temp = int(str(item['_id'])[0:8], 16)
+            if (temp > max):
+                max = temp
 
     for x in doc:
-        if int(str(x['_id'])[0:8], 16)==max and str(x['data'])==date and x['module']== module:
-            print({'module':x['module'],'time':x['data'],'numerator':x['numerator']})
-            return {'module':x['module'],'time':x['data'],'numerator':x['numerator']}
+        if int(str(x['_id'])[0:8], 16) == max and str(x['data']) == date and x['module'] == module:
+            print({'module': x['module'], 'time': x['data'], 'numerator': x['numerator']})
+            return {'module': x['module'], 'time': x['data'], 'numerator': x['numerator']}
+
 
 def writeToTXT():
     for module in modules_path:
         name = module[5:]
-        dic=readFromMongo({'module':name})
-        path='/Users/shiyufei/project/data/'+name+'.txt'
+        dic = readFromMongo({'module': name})
+        path = '/Users/shiyufei/project/data/' + name + '.txt'
         for item in dic:
-            writeLine(path,item['time'],item['numerator'])
+            writeLine(path, item['time'], item['numerator'])
 
-def writeLine(path,timestamp,numerator):
+
+def writeLine(path, timestamp, numerator):
     file = open(path, 'a')
-    file.write(timestamp+' '+numerator+'\n')
+    file.write(timestamp + ' ' + numerator + '\n')
     file.close()
+
 
 # def writelocal():
 #     path = '/Users/shiyufei/project/mongodata.txt'
@@ -151,7 +158,7 @@ def writeLine(path,timestamp,numerator):
 def testWriteTotxt():
     for module in modules_path:
         name = module[5:]
-        path='/Users/shiyufei/project/data/'+name+'.txt'
+        path = '/Users/shiyufei/project/data/' + name + '.txt'
 
         a1 = (2019, 9, 1, 0, 0, 0, 0, 0, 0)  # 设置开始日期时间元组（1976-01-01 00：00：00）
         a2 = (2020, 10, 31, 23, 59, 59, 0, 0, 0)  # 设置结束日期时间元组（1990-12-31 23：59：59）
@@ -164,78 +171,86 @@ def testWriteTotxt():
             t = random.randint(start, end)  # 在开始和结束时间戳中随机取出一个
             date_touple = time.localtime(t)  # 将时间戳生成时间元组
             date = time.strftime("%Y-%m-%d", date_touple)  # 将时间元组转成格式化字符串（1976-05-21）
-            num=random.uniform(0, 5)
-            writeLine(path,date,str(num))
-
+            num = random.uniform(0, 5)
+            writeLine(path, date, str(num))
 
 
 if __name__ == '__main__':
     # testWriteTotxt()
 
-    readFromMongo({'module': '半导体','data': '2019-08-09'})
+    # readFromMongo({'module': '半导体', 'data': '2019-08-09'})
 
-    # dicArr=[]
-    # with open("new_data.csv", "w") as csvfile:
-    #     writer = csv.writer(csvfile, lineterminator='\n')
-    #     writer.writerow(["module", "time", "percent", "compare"])
-    #     # 对模块的处理
-    #     for module in modules_path:
-    #         circul_sum = 0  # 发行量的和
-    #         output = [module[5:]]  # 一个模块的数据，以列写入csv
-    #         shares_path = glob.glob("{}/*.csv".format(module))
-    #         # 模块中股票的处理
-    #         for share in shares_path:
-    #             circulation = int(share.split('-')[1])  # 股票的发行量
-    #             weighted_percent = []  # 每天的加权涨跌幅
-    #             with open(share) as f:
-    #                 f_csv = csv.reader(f)
-    #                 for row in f_csv:
-    #                     if tmp == 0:
-    #                         if row[0] == "timestamp":
-    #                             time_stamp.append(row[0])
-    #                         else:
-    #                             time_stamp.append(timeStamp(int(row[0])))
-    #                     if row[0] == "timestamp": continue
-    #                     weighted_percent.append(float(row[7]) * circulation)
-    #                 tmp = 1
-    #                 if tmp == 1:
-    #                     out_dic["timestamp"] = time_stamp[1:]
-    #                     tmp = 2
-    #                 if len(weighted_percent) == 284:
-    #                     weighted_mixed.append(weighted_percent)
-    #                     circul_sum += circulation
-    #         for i in range(284):
-    #             mydict = {}
-    #             new_out = [module[5:]]
-    #             mydict["module"] = module[5:]
-    #             weighted_sum = 0  # 加权数的和
-    #             new_out.append(time_stamp[i + 1])
-    #             mydict["time"] =time_stamp[i + 1]
-    #             for share_per in weighted_mixed:
-    #                 weighted_sum += share_per[i]
-    #             if circul_sum == 0:
-    #                 new_out.append(0)
-    #                 output.append(0)
-    #                 mydict["percent"]=str(0)
-    #             else:
-    #                 new_out.append(weighted_sum / circul_sum)
-    #                 output.append(weighted_sum / circul_sum)
-    #                 mydict["percent"] = str(weighted_sum / circul_sum)
-    #             new_out.append(i)
-    #
-    #             print(mydict)
-    #             dicArr.append(mydict)
-    #             #writeToMongodbByOne(mydict)
-    #             # print(new_out)
-    #             writer.writerow(new_out)
-    #         out_dic[output[0]] = output[1:]
-    #         #print("outdic",out_dic)
-    #
-    #
+    dicArr = []
+    with open("new_data.csv", "w") as csvfile:
+        writer = csv.writer(csvfile, lineterminator='\n')
+        writer.writerow(["module", "time", "percent", "compare"])
+        # 对模块的处理
+        for module in modules_path:
+            circul_sum = 0  # 发行量的和
+            output = [module[5:]]  # 一个模块的数据，以列写入csv
+            shares_path = glob.glob("{}/*.csv".format(module))
+            # 模块中股票的处理
+            for share in shares_path:
+                circulation = int(share.split('-')[1])  # 股票的发行量
+                number_date = 0
+                # weighted_percent = []  # 每天的加权涨跌幅
+                with open(share) as f:
+                    f_csv = csv.reader(f)
+                    for row in f_csv:
+                        if tmp == 0:
+                            if row[0] == "timestamp":
+                                time_stamp.append(row[0])
+                            else:
+                                time_stamp.append(timeStamp(int(row[0])))
+                        if row[0] == "timestamp": continue
+                        number_date += 1
+                        # weighted_percent.append(float(row[7]) * circulation)
+                    tmp = 1
+                    if tmp == 1:
+                        out_dic["timestamp"] = time_stamp[1:]
+                        tmp = 2
+                    if number_date == 284:
+                        # weighted_mixed.append(weighted_percent)
+                        circul_sum += circulation
+            for i in range(284):
+                mydict = {}
+                new_out = [module[5:]]
+                mydict["module"] = module[5:]
+                key1 = module[5:]
+                key2 = time_stamp[i + 1]
+                # weighted_sum = 0  # 加权数的和
+                new_out.append(time_stamp[i + 1])
+                mydict["time"] = time_stamp[i + 1]
+                # for share_per in weighted_mixed:
+                #     weighted_sum += share_per[i]
+                if circul_sum == 0:
+                    new_out.append(0)
+                    output.append(0)
+                    mydict["percent"] = str(0)
+                else:
+                    '''数据没有完全写入'''
+                    print(key1, key2)
+                    numerator = (readFromMongo({'module': key1, 'data': key2}))[0]
+                    print(numerator)
+
+                    new_out.append(numerator / circul_sum)
+                    output.append(numerator / circul_sum)
+                    mydict["percent"] = str(numerator / circul_sum)
+                new_out.append(i)
+
+                print(mydict)
+                dicArr.append(mydict)
+                # writeToMongodbByOne(mydict)
+                # print(new_out)
+                writer.writerow(new_out)
+            out_dic[output[0]] = output[1:]
+            # print("outdic",out_dic)
+
     # writeToMongodbByMany(dicArr)
-    # dataframe = pd.DataFrame(out_dic)
-    # dataframe.to_csv(r"weighted_chg_percent.csv", sep=',')
-    #
-    # json_out = json.dumps(out_dic, ensure_ascii=False, indent=2)
-    # with open('weighted_chg_percent.json', 'w') as f:
-    #     f.write(json_out)
+
+    dataframe = pd.DataFrame(out_dic)
+    dataframe.to_csv(r"weighted_chg_percent.csv", sep=',')
+
+    json_out = json.dumps(out_dic, ensure_ascii=False, indent=2)
+    with open('weighted_chg_percent.json', 'w') as f:
+        f.write(json_out)
